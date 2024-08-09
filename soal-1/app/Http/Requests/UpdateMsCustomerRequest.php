@@ -11,7 +11,7 @@ class UpdateMsCustomerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,19 @@ class UpdateMsCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'nama' => 'required',
+            'alamat' => 'required',
+            'phone' => 'required|numeric',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nama.required' => 'Nama Customer harus diisi',
+            'alamat.required' => 'Alamat harus diisi',
+            'phone.required' => 'No. Telp harus diisi',
+            'phone.numeric' => 'No. Telp harus berisi angka',
         ];
     }
 }

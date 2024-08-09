@@ -21,15 +21,21 @@ class CounterController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCounterRequest $request)
+    public function store()
     {
-        //
+        $counter = new Counter;
+        $counter->bulan = date('m');
+        $counter->tahun = date('Y');
+        $counter->counter = Counter::where('bulan', $counter->bulan)->where('tahun', $counter->tahun)->count() + 1;
+        $counter->save();
+
+        return $counter;
     }
 
     /**

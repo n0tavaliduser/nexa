@@ -5,15 +5,24 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMsCustomerRequest;
 use App\Http\Requests\UpdateMsCustomerRequest;
 use App\Models\MsCustomer;
+use App\Models\TransaksiH;
+use Illuminate\Http\Request;
 
 class MsCustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $msCustomers = MsCustomer::query()
+            ->when($request->search, function ($query, $search) {
+                return $query->where('name', 'like', '%' . $search . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('dashboard.customer.index', compact('msCustomers'));
     }
 
     /**
@@ -21,7 +30,7 @@ class MsCustomerController extends Controller
      */
     public function create()
     {
-        //
+        return view('dashboard.customer.create');
     }
 
     /**
@@ -29,7 +38,12 @@ class MsCustomerController extends Controller
      */
     public function store(StoreMsCustomerRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $msCustomer = MsCustomer::make($data);
+        $msCustomer->saveOrFail();
+
+        return redirect()->back()->with(['success' => 'Data Customer berhasil ditambahkan']);
     }
 
     /**
@@ -37,7 +51,7 @@ class MsCustomerController extends Controller
      */
     public function show(MsCustomer $msCustomer)
     {
-        //
+        return view('dashboard.customer.show', compact('msCustomer'));
     }
 
     /**
@@ -45,7 +59,7 @@ class MsCustomerController extends Controller
      */
     public function edit(MsCustomer $msCustomer)
     {
-        //
+        return view('dashboard.customer.edit', compact('msCustomer'));
     }
 
     /**
@@ -53,7 +67,12 @@ class MsCustomerController extends Controller
      */
     public function update(UpdateMsCustomerRequest $request, MsCustomer $msCustomer)
     {
-        //
+        $data = $request->validated();
+
+        $msCustomer->fill($data);
+        $msCustomer->saveOrFail();
+
+        return redirect()->back()->with(['success' => 'Data Customer berhasil diubah']);
     }
 
     /**
@@ -61,6 +80,19 @@ class MsCustomerController extends Controller
      */
     public function destroy(MsCustomer $msCustomer)
     {
-        //
+        $transactionHistory = TransaksiH::where('customer_id', $msCustomer->id)->first();
+
+        if ($transactionHistory) {
+            return redirect()->back()->with(['error' => 'Data Customer tidak dapat dihapus karena masih memiliki transaksi']);
+        }
+
+        $msCustomer->delete();
+
+        return redirect()->back()->with(['success' => 'Data Customer berhasil dihapus']);
+    }
+
+    public function getCustomerInfo(MsCustomer $msCustomer)
+    {
+        return response()->json($msCustomer);
     }
 }
